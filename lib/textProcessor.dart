@@ -7,7 +7,8 @@ class TextProcessor {
   /// Date format reference: https://pub.dev/documentation/intl/latest/intl/DateFormat-class.html
   final _patternList = [
     ChatPattern('android_US', r'\d{1,2}/\d{1,2}/\d{2}, \d{2}:\d{2} - ', 'M/d/y, H:m - '), // '9/31/99, 01:01 - '
-    ChatPattern('android_BR', r'\d{2}/\d{2}/\d{2} \d{2}:\d{2} - ', '%d/%m/%y %H:%M - '), // '31/01/99 01:01 - '
+    ChatPattern('android_BR', r'\d{2}/\d{2}/\d{2} \d{2}:\d{2} - ', 'd/m/y H:M - '), // '31/01/99 01:01 - '
+    ChatPattern('ios_BR', r'\[\d{2}/\d{2}/\d{2} \d{2}:\d{2}:\d{2}\] ', '[d/m/y H:M:s] '), // '[01/08/19 10:37:57] '
   ];
 
   TextProcessor(String chatText) {

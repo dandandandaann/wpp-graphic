@@ -1,3 +1,6 @@
+# Don't upload private chats
+/assets/*.txt
+
 # Miscellaneous
 *.class
 *.log
