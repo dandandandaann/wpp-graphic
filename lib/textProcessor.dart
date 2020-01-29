@@ -43,6 +43,9 @@ class TextProcessor {
     var msgPerHour = Map<int, int>();
     var msgPerWeekDay = Map<String, int>();
     var msgPerMonth = Map<String, int>();
+    var totalMsgCount = 0;
+    var totalWordCount = 0;
+    var totalCharCount = 0;
 
     // loop through messages
     for (var i = 0; i < dateAndTime.length; i++) {
@@ -56,8 +59,11 @@ class TextProcessor {
 
       if (!users.containsKey(user)) users[user] = new User(user);
 
+      totalCharCount += text.length;
+
       // word count
       var wordList = text.split(' ');
+      totalWordCount += wordList.length;
       users[user].wordCount += wordList.length;
       for (var word in wordList) {
         word = word.toLowerCase();
@@ -68,6 +74,7 @@ class TextProcessor {
       }
 
       // message count
+      totalMsgCount++;
       users[user].msgCount++;
 
       if (!msgPerHour.containsKey(dateTime.hour)) msgPerHour[dateTime.hour] = 0;
@@ -86,10 +93,12 @@ class TextProcessor {
 
     // populate result
     result['Usuários'] = users.keys.join(', ');
-    result['Total de mensagens'] = msgList.length.toString();
+    result['Total de mensagens'] = totalMsgCount.toString();
+    result['Total de palavras'] = totalWordCount.toString();
+    result['Total de caracteres'] = totalCharCount.toString();
 
     for (var user in users.keys) {
-      result['Mensagens $user'] = '${users[user].msgCount} (${users[user].msgCount * 100 / msgList.length})';
+      result['Mensagens $user'] = '${users[user].msgCount} (${(users[user].msgCount * 100 / msgList.length).round()}%)';
     }
 
     for (var user in users.keys) {
