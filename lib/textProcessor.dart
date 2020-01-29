@@ -35,7 +35,7 @@ class TextProcessor {
     if (dateAndTime.length != userAndText.length) throw new Exception('quantidade de datas e mensagens estão diferentes');
 
     var msgList = List<Msg>();
-    var users = Set();
+    var users = Map<String, User>();
     var wordCount = Map<String, int>();
 
     for (var i = 0; i < dateAndTime.length; i++) {
@@ -45,14 +45,16 @@ class TextProcessor {
       var msgText = userAndText[i].split(':');
       var user = msgText.removeAt(0).trim();
       var text = msgText.join(':').trim();
-      users.add(user);
+      if (!users.containsKey(user)) users[user] = new User(user);
 
       DateFormat format = new DateFormat(_pattern.dateTime);
       var dateTime = format.parse(dateAndTime[i]);
 
       msgList.add(Msg(dateTime, user, text));
 
-      for (var word in text.split(' ')) {
+      var textWords = text.split(' ');
+      users[user].wordCount += textWords.length;
+      for (var word in textWords) {
         word = word.toLowerCase();
         if (_shouldCount(word)) {
           if (!wordCount.containsKey(word)) wordCount[word] = 0;
@@ -62,11 +64,15 @@ class TextProcessor {
     }
 
     // populate result
-    result['Usuários'] = users.join(', ');
+    result['Usuários'] = users.keys.join(', ');
     result['Total de mensagens'] = msgList.length.toString();
 
+    for (var user in users.keys) {
+      result['Mensagens $user'] = users[user].wordCount.toString();
+    }
+
     wordCount.topValues(10).forEach((word, count) {
-      result[word] = count.toString();
+      result["Palavra '$word'"] = count.toString();
     });
 
     return result;
@@ -106,6 +112,7 @@ class Msg {
   DateTime dateTime;
   String user;
   String text;
+
   Msg(DateTime dateTime, String user, String text) {
     this.dateTime = dateTime;
     this.user = user;
@@ -117,9 +124,20 @@ class ChatPattern {
   String id;
   String regex;
   String dateTime;
+
   ChatPattern(String id, String regex, String dateTime) {
     this.id = id;
     this.regex = regex;
     this.dateTime = dateTime;
+  }
+}
+
+class User {
+  String name;
+  int wordCount;
+
+  User(String name) {
+    this.name = name;
+    this.wordCount = 0;
   }
 }
