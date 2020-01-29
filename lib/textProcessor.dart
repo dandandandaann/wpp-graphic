@@ -1,3 +1,5 @@
+import 'dart:core';
+
 import 'package:intl/intl.dart';
 
 class TextProcessor {
@@ -34,10 +36,15 @@ class TextProcessor {
     // both should have same length
     if (dateAndTime.length != userAndText.length) throw new Exception('quantidade de datas e mensagens estão diferentes');
 
+    var format = new DateFormat(_pattern.dateTime);
     var msgList = List<Msg>();
     var users = Map<String, User>();
     var wordCount = Map<String, int>();
+    var msgPerHour = Map<int, int>();
+    var msgPerWeekDay = Map<String, int>();
+    var msgPerMonth = Map<String, int>();
 
+    // loop through messages
     for (var i = 0; i < dateAndTime.length; i++) {
       // ignore system messages
       if (!userAndText[i].contains(':')) continue;
@@ -45,22 +52,36 @@ class TextProcessor {
       var msgText = userAndText[i].split(':');
       var user = msgText.removeAt(0).trim();
       var text = msgText.join(':').trim();
-      if (!users.containsKey(user)) users[user] = new User(user);
-
-      DateFormat format = new DateFormat(_pattern.dateTime);
       var dateTime = format.parse(dateAndTime[i]);
 
-      msgList.add(Msg(dateTime, user, text));
+      if (!users.containsKey(user)) users[user] = new User(user);
 
-      var textWords = text.split(' ');
-      users[user].wordCount += textWords.length;
-      for (var word in textWords) {
+      // word count
+      var wordList = text.split(' ');
+      users[user].wordCount += wordList.length;
+      for (var word in wordList) {
         word = word.toLowerCase();
         if (_shouldCount(word)) {
           if (!wordCount.containsKey(word)) wordCount[word] = 0;
           wordCount[word]++;
         }
       }
+
+      // message count
+      users[user].msgCount++;
+
+      if (!msgPerHour.containsKey(dateTime.hour)) msgPerHour[dateTime.hour] = 0;
+      msgPerHour[dateTime.hour]++;
+
+      var weekDay = DateFormat('EEEE').format(dateTime);
+      if (!msgPerWeekDay.containsKey(weekDay)) msgPerWeekDay[weekDay] = 0;
+      msgPerWeekDay[weekDay]++;
+
+      var yearMonth = DateFormat('MM-yy').format(dateTime);
+      if (!msgPerMonth.containsKey(yearMonth)) msgPerMonth[yearMonth] = 0;
+      msgPerMonth[yearMonth]++;
+
+      msgList.add(Msg(dateTime, user, text));
     }
 
     // populate result
@@ -68,19 +89,59 @@ class TextProcessor {
     result['Total de mensagens'] = msgList.length.toString();
 
     for (var user in users.keys) {
-      result['Mensagens $user'] = users[user].wordCount.toString();
+      result['Mensagens $user'] = '${users[user].msgCount} (${users[user].msgCount * 100 / msgList.length})';
     }
 
-    wordCount.topValues(10).forEach((word, count) {
-      result["Palavra '$word'"] = count.toString();
-    });
+    for (var user in users.keys) {
+      result['Palavras $user'] = users[user].wordCount.toString();
+    }
+
+    // TODO: sort ascending (pre populate msgPerWeekDay?)
+    result['Mensagens por hora'] = msgPerHour.toString();
+    // TODO: sort days (pre populate msgPerWeekDay?)
+    result['Mensagens por dia'] = msgPerWeekDay.toString();
+    // TODO: sort months (swap year and month while sorting?)
+    result['Mensagens por mês'] = msgPerMonth.toString();
+
+    result['Palavras mais faladas'] = wordCount.topValues(15).toString();
 
     return result;
   }
 
   bool _shouldCount(String word) {
-    var wordsNotCounted = ['que', 'pra', 'para', 'uma', 'vai', 'com', 'ser', 'por'];
-
+    var wordsNotCounted = [
+      'a',
+      'o',
+      'e',
+      'é',
+      'que',
+      'isso',
+      'isto',
+      'pra',
+      'ser' 'tem',
+      'por',
+      'vou',
+      'com',
+      'vai',
+      'mesmo',
+      'sei',
+      'então',
+      'como',
+      'meu',
+      'foi',
+      'nao',
+      'para',
+      'esse',
+      'essa',
+      'este',
+      'esta',
+      'tava',
+      'um',
+      'uma',
+      'de',
+      'ser',
+      'tem',
+    ];
     if (word.length < 3) return false;
     if (wordsNotCounted.contains(word)) return false;
 
@@ -90,18 +151,20 @@ class TextProcessor {
 
 // TODO: Extension methods weren't supported until version 2.6.0, but this code is required to be able to run on earlier versions.
 extension MyMap<K, V> on Map<K, V> {
-  Map<K, V> topValues(int count) {
+  Map<K, V> topValues([int count = 0]) {
     List<V> mapValues = this.values.toList(growable: false);
     if (V == int) {
       mapValues.sort((k1, k2) => (k2 as int) - (k1 as int));
     } else if (V == String) {
       mapValues.sort((k1, k2) => (k2 as String).length - (k1 as String).length);
     }
-    // TODO: mapReversed might not work with word with duplicate count
+    // TODO: mapReversed might not work well with word with duplicate count
     var mapReversed = this.map((k, v) => MapEntry(v, k));
     var result = new Map<K, V>();
 
-    mapValues.take(count).forEach((k1) {
+    if (count > 0) mapValues = mapValues.take(count).toList();
+
+    mapValues.forEach((k1) {
       result[mapReversed[k1]] = k1;
     });
     return result;
@@ -135,9 +198,11 @@ class ChatPattern {
 class User {
   String name;
   int wordCount;
+  int msgCount;
 
   User(String name) {
     this.name = name;
     this.wordCount = 0;
+    this.msgCount = 0;
   }
 }
