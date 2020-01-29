@@ -53,36 +53,50 @@ class TextProcessor {
       msgList.add(Msg(dateTime, user, text));
 
       for (var word in text.split(' ')) {
-        if (!wordCount.containsKey(word)) wordCount[word] = 0;
-        wordCount[word]++;
+        word = word.toLowerCase();
+        if (_shouldCount(word)) {
+          if (!wordCount.containsKey(word)) wordCount[word] = 0;
+          wordCount[word]++;
+        }
       }
     }
 
+    // populate result
     result['Usuários'] = users.join(', ');
     result['Total de mensagens'] = msgList.length.toString();
 
-var topWords = wordCount.topValues(10);
-
-    topWords.forEach((word, count) {
+    wordCount.topValues(10).forEach((word, count) {
       result[word] = count.toString();
     });
 
     return result;
+  }
+
+  bool _shouldCount(String word) {
+    var wordsNotCounted = ['que', 'pra', 'para', 'uma', 'vai', 'com', 'ser', 'por'];
+
+    if (word.length < 3) return false;
+    if (wordsNotCounted.contains(word)) return false;
+
+    return true;
   }
 }
 
 // TODO: Extension methods weren't supported until version 2.6.0, but this code is required to be able to run on earlier versions.
 extension MyMap<K, V> on Map<K, V> {
   Map<K, V> topValues(int count) {
-    List mapKeys = this.keys.toList(growable: false);
-    if (V.runtimeType is int) {
-      mapKeys.sort((k1, k2) => (this[k1] as int) - (this[k2] as int));
-    } else if (V.runtimeType is String) {
-      mapKeys.sort((k1, k2) => (this[k1] as String).length - (this[k2] as String).length);
+    List<V> mapValues = this.values.toList(growable: false);
+    if (V == int) {
+      mapValues.sort((k1, k2) => (k2 as int) - (k1 as int));
+    } else if (V == String) {
+      mapValues.sort((k1, k2) => (k2 as String).length - (k1 as String).length);
     }
+    // TODO: mapReversed might not work with word with duplicate count
+    var mapReversed = this.map((k, v) => MapEntry(v, k));
     var result = new Map<K, V>();
-    mapKeys.take(count).forEach((k1) {
-      result[k1] = this[k1];
+
+    mapValues.take(count).forEach((k1) {
+      result[mapReversed[k1]] = k1;
     });
     return result;
   }
