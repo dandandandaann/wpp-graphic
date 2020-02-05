@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_rollbar/flutter_rollbar.dart';
 import 'package:hello_world/textProcessor.dart';
+
+import 'deviceInfo.dart';
 
 void main() => runApp(new HelloWorldApp());
 
@@ -25,7 +28,6 @@ class HelloWorldState extends State<HelloWorldApp> {
               onPressed: () async {
                 final String path = 'assets/chat.txt';
                 _chatText = await WIP.loadAsset(path, context);
-
                 var _textProcessor = new TextProcessor(_chatText);
                 chatStatistics = _textProcessor.generateStatistics();
 
@@ -63,6 +65,11 @@ class HelloWorldState extends State<HelloWorldApp> {
 
   @override
   void initState() {
+    DeviceInfo.getInfoAsync().then((deviceInfo) => new Rollbar()
+        ..accessToken = '831f70defad74c3092a50b2e0012102e'
+        ..environment = 'development'
+        ..person = new RollbarPerson(id: deviceInfo['id'])
+      );
     super.initState();
     _init();
   }
