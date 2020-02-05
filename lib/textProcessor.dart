@@ -1,6 +1,6 @@
 import 'dart:core';
-
 import 'package:intl/intl.dart';
+import 'package:flutter_rollbar/flutter_rollbar.dart';
 
 class TextProcessor {
   String _chat;
@@ -11,6 +11,7 @@ class TextProcessor {
     ChatPattern('android_US', r'\d{1,2}/\d{1,2}/\d{2}, \d{2}:\d{2} - ', 'M/d/y, H:m - '), // '1/31/99, 01:01 - '
     ChatPattern('android_BR', r'\d{2}/\d{2}/\d{2} \d{2}:\d{2} - ', 'd/M/y H:m - '), // '31/01/99 01:01 - '
     ChatPattern('ios_BR', r'\[\d{2}/\d{2}/\d{2} \d{2}:\d{2}:\d{2}\] ', '[d/M/y H:m:s] '), // '[31/01/99 01:01:01] '
+    ChatPattern('android_US-2', r'\d{1,2}/\d{1,2}/\d{2}, \d{1,2}:\d{2} (AM|PM) - ', 'M/d/y, h:m a - '), // '1/31/99, 1:01 AM - '
   ];
 
   TextProcessor(String chatText) {
@@ -21,7 +22,8 @@ class TextProcessor {
     var result = Map<String, String>();
 
     // define chat pattern
-    _pattern = _patternList.singleWhere((pattern) => new RegExp(pattern.regex).hasMatch(_chat),
+    var chatStart = _chat.substring(0, 50);
+    _pattern = _patternList.singleWhere((pattern) => new RegExp(pattern.regex).hasMatch(chatStart),
         orElse: () => throw new UnimplementedError('pattern do chat não encontrado'));
 
     // remove whatsapp tags <...>
@@ -150,6 +152,10 @@ class TextProcessor {
       'de',
       'ser',
       'tem',
+      'mas',
+      'mais',
+      'aqui',
+      'ainda',
     ];
     if (word.length < 3) return false;
     if (wordsNotCounted.contains(word)) return false;

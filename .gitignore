@@ -74,3 +74,23 @@
 !**/ios/**/default.pbxuser
 !**/ios/**/default.perspectivev3
 !/packages/flutter_tools/test/data/dart_dependencies_test/**/.packages
+
+# Built application files
+*.apk
+*.aar
+*.ap_
+*.aab
+
+# Files for the ART/Dalvik VM
+*.dex
+
+# Generated files
+**/android/bin/
+**/android/gen/
+**/android/out/
+#  Uncomment the following line in case you need and you don't have the release build type files in your app
+**/android/release/
+
+# Gradle files
+**/android/.gradle/
+**/android/build/
