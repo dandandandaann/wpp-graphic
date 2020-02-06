@@ -1,11 +1,12 @@
 import 'dart:io';
 import 'package:device_info/device_info.dart';
+import 'package:flutter_rollbar/flutter_rollbar.dart';
 
 class DeviceInfo {
   static Future<Map<String, String>> getInfoAsync() async {
-    String deviceName;
-    String deviceVersion;
-    String identifier;
+    String deviceName = '';
+    String deviceVersion = '';
+    String identifier = '';
     final DeviceInfoPlugin deviceInfoPlugin = new DeviceInfoPlugin();
     try {
       if (Platform.isAndroid) {
@@ -20,40 +21,34 @@ class DeviceInfo {
         identifier = data.identifierForVendor; //UUID for iOS
       }
     } on Exception {
-      // TODO: check if exception create a send report popup
-      print('Failed to get platform version');
+      Rollbar().publishReport(message: 'Failed to get platform version');
     }
 
     return {'name': deviceName, 'version': deviceVersion, 'id': identifier};
   }
 
   static Map<String, String> getInfo() {
-    String deviceName;
-    String deviceVersion;
-    String identifier;
+    String deviceName = '';
+    String deviceVersion = '';
+    String identifier = '';
     final DeviceInfoPlugin deviceInfoPlugin = new DeviceInfoPlugin();
     try {
       if (Platform.isAndroid) {
-        AndroidDeviceInfo deviceInfo; 
+        AndroidDeviceInfo deviceInfo;
         deviceInfoPlugin.androidInfo.then((resultado) => print(resultado));
-    // save()
-    //     .then((success) => window.alert(success ? 'Saved' : 'Failed'))
-    //     .catchError((e) => window.alert(e))
-    //     .whenComplete(() { saveButton.enabled = true; });
 
         deviceName = deviceInfo.model;
         deviceVersion = deviceInfo.version.toString();
         identifier = deviceInfo.androidId; //UUID for Android
       } else if (Platform.isIOS) {
-        IosDeviceInfo deviceInfo; 
+        IosDeviceInfo deviceInfo;
         deviceInfoPlugin.iosInfo.then((resultado) => deviceInfo = resultado);
         deviceName = deviceInfo.name;
         deviceVersion = deviceInfo.systemVersion;
         identifier = deviceInfo.identifierForVendor; //UUID for iOS
       }
     } on Exception {
-      // TODO: check if exception create a send report popup
-      print('Failed to get platform version');
+      Rollbar().publishReport(message: 'Failed to get platform version');
     }
 
     return {'name': deviceName, 'version': deviceVersion, 'id': identifier};

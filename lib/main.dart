@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_rollbar/flutter_rollbar.dart';
@@ -5,7 +7,13 @@ import 'package:hello_world/textProcessor.dart';
 
 import 'deviceInfo.dart';
 
-void main() => runApp(new HelloWorldApp());
+void main() => runZoned<Future<void>>(() async {
+      runApp(new HelloWorldApp());
+    }, onError: (error, stackTrace) async {
+      await Rollbar().publishReport(message: '$error.\n$stackTrace');
+      // TODO: show dialog when errors are caught
+      // _reportError(error, stackTrace);
+    });
 
 class HelloWorldApp extends StatefulWidget {
   State<StatefulWidget> createState() {
@@ -14,31 +22,31 @@ class HelloWorldApp extends StatefulWidget {
 }
 
 class HelloWorldState extends State<HelloWorldApp> {
-  String _chatText;
   Map<String, String> chatStatistics;
 
   Widget build(BuildContext context) {
     return new MaterialApp(
       home: new Scaffold(
         appBar: new AppBar(
-          title: new Text('Whatsapp Infographic'),
+          title: new Text('Whatsapp Infographic'), centerTitle: true,
+          // TODO: comment before releasing
           actions: <Widget>[
             new IconButton(
               icon: new Icon(Icons.refresh),
               onPressed: () async {
                 final String path = 'assets/chat.txt';
-                _chatText = await WIP.loadAsset(path, context);
-                var _textProcessor = new TextProcessor(_chatText);
+                var asd = await WIP.loadAsset(path, context);
+                var _textProcessor = new TextProcessor(asd);
                 chatStatistics = _textProcessor.generateStatistics();
-
                 setState(() {});
               },
             )
           ],
+          // comment before releasing
         ),
         body: new Center(
             child: chatStatistics == null
-                ? new Text('Lista vazia')
+                ? new Text('Para gerar os dados é preciso exportar um chat do WhatsApp')
                 : new ListView.builder(
                     itemCount: chatStatistics.length,
                     itemBuilder: (context, index) {
@@ -66,10 +74,9 @@ class HelloWorldState extends State<HelloWorldApp> {
   @override
   void initState() {
     DeviceInfo.getInfoAsync().then((deviceInfo) => new Rollbar()
-        ..accessToken = '831f70defad74c3092a50b2e0012102e'
-        ..environment = 'development'
-        ..person = new RollbarPerson(id: deviceInfo['id'])
-      );
+      ..accessToken = '831f70defad74c3092a50b2e0012102e'
+      ..environment = 'development'
+      ..person = new RollbarPerson(id: deviceInfo['id']));
     super.initState();
     _init();
   }
@@ -79,10 +86,9 @@ class HelloWorldState extends State<HelloWorldApp> {
     // Listen to lifecycle changes to subsequently call Java MethodHandler to check for shared data
     SystemChannels.lifecycle.setMessageHandler((msg) {
       if (msg.contains('resumed')) {
-        _getSharedData().then((d) {
-          if (d.containsKey('text')) {
-            var _textProcessor = new TextProcessor(d['text']);
-            setState(() => chatStatistics = _textProcessor.generateStatistics());
+        _getSharedData().then((sharedData) {
+          if (sharedData.containsKey('text')) {
+            setState(() => chatStatistics = TextProcessor(sharedData['text']).generateStatistics());
           }
         });
       }
@@ -93,8 +99,7 @@ class HelloWorldState extends State<HelloWorldApp> {
     // Call Java MethodHandler on application start up to check for shared data
     var data = await _getSharedData();
     if (data.containsKey('text')) {
-      var _textProcessor = new TextProcessor(data['text']);
-      setState(() => chatStatistics = _textProcessor.generateStatistics());
+      setState(() => chatStatistics = TextProcessor(sharedData['text']).generateStatistics());
     }
   }
 

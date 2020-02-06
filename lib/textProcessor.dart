@@ -1,6 +1,5 @@
 import 'dart:core';
 import 'package:intl/intl.dart';
-import 'package:flutter_rollbar/flutter_rollbar.dart';
 
 class TextProcessor {
   String _chat;
@@ -22,9 +21,10 @@ class TextProcessor {
     var result = Map<String, String>();
 
     // define chat pattern
+    if(_chat.length < 50) throw new Exception('Muito pouco chat para analisar');
     var chatStart = _chat.substring(0, 50);
     _pattern = _patternList.singleWhere((pattern) => new RegExp(pattern.regex).hasMatch(chatStart),
-        orElse: () => throw new UnimplementedError('pattern do chat não encontrado'));
+        orElse: () => throw new UnimplementedError('pattern "${chatStart.substring(0, 25)}" não reconhecido'));
 
     // remove whatsapp tags <...>
     _chat = _chat.replaceAll('<Media omitted>', '');
