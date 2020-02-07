@@ -2,15 +2,17 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_rollbar/flutter_rollbar.dart';
+import 'package:hello_world/rollbar/flutter_rollbar.dart';
+import 'package:hello_world/rollbar/rollbar_types.dart';
+// import 'package:flutter_rollbar/flutter_rollbar.dart';
 import 'package:hello_world/textProcessor.dart';
 
-import 'deviceInfo.dart';
+// import 'deviceInfo.dart';
 
 void main() => runZoned<Future<void>>(() async {
       runApp(new HelloWorldApp());
     }, onError: (error, stackTrace) async {
-      await Rollbar().publishReport(message: '$error.\n$stackTrace');
+      Rollbar().publishReport(message: '$error.\n$stackTrace');
       // TODO: show dialog when errors are caught
       // _reportError(error, stackTrace);
     });
@@ -38,6 +40,7 @@ class HelloWorldState extends State<HelloWorldApp> {
                 var asd = await WIP.loadAsset(path, context);
                 var _textProcessor = new TextProcessor(asd);
                 chatStatistics = _textProcessor.generateStatistics();
+                Rollbar().publishReport(message: 'teste 0.2');
                 setState(() {});
               },
             )
@@ -73,10 +76,15 @@ class HelloWorldState extends State<HelloWorldApp> {
 
   @override
   void initState() {
-    DeviceInfo.getInfoAsync().then((deviceInfo) => new Rollbar()
+    // DeviceInfo.getInfoAsync().then((deviceInfo) => new Rollbar()
+    //   ..accessToken = '831f70defad74c3092a50b2e0012102e'
+    //   ..environment = 'development'
+    //   ..person = new RollbarPerson(id: deviceInfo['id']));
+
+    Rollbar()
       ..accessToken = '831f70defad74c3092a50b2e0012102e'
       ..environment = 'development'
-      ..person = new RollbarPerson(id: deviceInfo['id']));
+      ..person = new RollbarPerson(id: 'anon');
     super.initState();
     _init();
   }
@@ -86,9 +94,9 @@ class HelloWorldState extends State<HelloWorldApp> {
     // Listen to lifecycle changes to subsequently call Java MethodHandler to check for shared data
     SystemChannels.lifecycle.setMessageHandler((msg) {
       if (msg.contains('resumed')) {
-        _getSharedData().then((sharedData) {
-          if (sharedData.containsKey('text')) {
-            setState(() => chatStatistics = TextProcessor(sharedData['text']).generateStatistics());
+        _getSharedData().then((data) {
+          if (data.containsKey('text')) {
+            setState(() => chatStatistics = TextProcessor(data['text']).generateStatistics());
           }
         });
       }
@@ -97,8 +105,8 @@ class HelloWorldState extends State<HelloWorldApp> {
 
     // Case 2: App is started by the intent:
     // Call Java MethodHandler on application start up to check for shared data
-    var data = await _getSharedData();
-    if (data.containsKey('text')) {
+    var sharedData = await _getSharedData();
+    if (sharedData.containsKey('text')) {
       setState(() => chatStatistics = TextProcessor(sharedData['text']).generateStatistics());
     }
   }
