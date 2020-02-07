@@ -40,7 +40,6 @@ class HelloWorldState extends State<HelloWorldApp> {
                 var asd = await WIP.loadAsset(path, context);
                 var _textProcessor = new TextProcessor(asd);
                 chatStatistics = _textProcessor.generateStatistics();
-                Rollbar().publishReport(message: 'teste 0.2');
                 setState(() {});
               },
             )
