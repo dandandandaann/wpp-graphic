@@ -21,7 +21,7 @@ class TextProcessor {
     var result = Map<String, String>();
 
     // define chat pattern
-    if(_chat.length < 50) throw new Exception('Muito pouco chat para analisar');
+    if ((_chat ?? '').length < 50) throw new Exception('Pouco chat para analisar');
     var chatStart = _chat.substring(0, 50);
     _pattern = _patternList.singleWhere((pattern) => new RegExp(pattern.regex).hasMatch(chatStart),
         orElse: () => throw new UnimplementedError('pattern "${chatStart.substring(0, 25)}" não reconhecido'));
@@ -43,11 +43,25 @@ class TextProcessor {
     var users = Map<String, User>();
     var wordCount = Map<String, int>();
     var msgPerHour = Map<int, int>();
-    var msgPerWeekDay = Map<String, int>();
+    // var msgPerWeekDay = Map<String, int>();
     var msgPerMonth = Map<String, int>();
     var totalMsgCount = 0;
     var totalWordCount = 0;
     var totalCharCount = 0;
+
+    String localeName = "pt_BR"; // "en_US" etc.
+    // initializeDateFormatting(localeName);
+
+    DateFormat weedDayFormatter = DateFormat(DateFormat.WEEKDAY, localeName);
+    var msgPerWeekDay = Map<String, int>.fromIterable([
+      DateTime(2000, 1, 3), // Monday
+      DateTime(2000, 1, 4), // Tuesday
+      DateTime(2000, 1, 5), // Wednesday
+      DateTime(2000, 1, 6), // Thrusday
+      DateTime(2000, 1, 7), // Friday
+      DateTime(2000, 1, 8), // Saturday
+      DateTime(2000, 1, 9), // Sunday
+    ], key: (k) => weedDayFormatter.format(k), value: (v) => 0);
 
     // loop through messages
     for (var i = 0; i < dateAndTime.length; i++) {
@@ -82,11 +96,11 @@ class TextProcessor {
       if (!msgPerHour.containsKey(dateTime.hour)) msgPerHour[dateTime.hour] = 0;
       msgPerHour[dateTime.hour]++;
 
-      var weekDay = DateFormat('EEEE').format(dateTime);
+      var weekDay = weedDayFormatter.format(dateTime);
       if (!msgPerWeekDay.containsKey(weekDay)) msgPerWeekDay[weekDay] = 0;
       msgPerWeekDay[weekDay]++;
 
-      var yearMonth = DateFormat('MM-yy').format(dateTime);
+      var yearMonth = DateFormat('MM/yy').format(dateTime);
       if (!msgPerMonth.containsKey(yearMonth)) msgPerMonth[yearMonth] = 0;
       msgPerMonth[yearMonth]++;
 
@@ -100,21 +114,20 @@ class TextProcessor {
     result['Total de caracteres'] = totalCharCount.toString();
 
     for (var user in users.keys) {
-      result['Mensagens $user'] = '${users[user].msgCount} (${(users[user].msgCount * 100 / msgList.length).round()}%)';
+      result['Mensagens de $user'] = '${users[user].msgCount} (${(users[user].msgCount * 100 / msgList.length).round()}%)';
     }
 
     for (var user in users.keys) {
-      result['Palavras $user'] = users[user].wordCount.toString();
+      result['Palavras $user'] = '${users[user].wordCount} (${(users[user].wordCount * 100 / totalWordCount).round()}%)';
     }
 
     // TODO: sort ascending (pre populate msgPerWeekDay?)
-    result['Mensagens por hora'] = msgPerHour.toString();
-    // TODO: sort days (pre populate msgPerWeekDay?)
-    result['Mensagens por dia'] = msgPerWeekDay.toString();
+    result['Mensagens por hora'] = msgPerHour.entries.fold('', (join, item) => join + '${item.key}h: ${item.value}\n');
+    result['Mensagens por dia'] = msgPerWeekDay.entries.fold('', (join, item) => join + '${item.key}: ${item.value}\n');
     // TODO: sort months (swap year and month while sorting?)
-    result['Mensagens por mês'] = msgPerMonth.toString();
+    result['Mensagens por mês'] = msgPerMonth.entries.fold('', (join, item) => join + '${item.key}: ${item.value}\n');
 
-    result['Palavras mais faladas'] = wordCount.topValues(15).toString();
+    result['Palavras mais faladas'] = wordCount.topValues(15).entries.fold('', (join, item) => join + '${item.key}: ${item.value}\n');
 
     return result;
   }
