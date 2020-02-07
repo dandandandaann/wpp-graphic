@@ -1,4 +1,5 @@
 import 'dart:core';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
 
 class TextProcessor {
@@ -50,7 +51,7 @@ class TextProcessor {
     var totalCharCount = 0;
 
     String localeName = "pt_BR"; // "en_US" etc.
-    // initializeDateFormatting(localeName);
+    initializeDateFormatting(localeName);
 
     DateFormat weedDayFormatter = DateFormat(DateFormat.WEEKDAY, localeName);
     var msgPerWeekDay = Map<String, int>.fromIterable([
@@ -186,15 +187,17 @@ extension MyMap<K, V> on Map<K, V> {
     } else if (V == String) {
       mapValues.sort((k1, k2) => (k2 as String).length - (k1 as String).length);
     }
-    // TODO: mapReversed might not work well with word with duplicate count
-    var mapReversed = this.map((k, v) => MapEntry(v, k));
     var result = new Map<K, V>();
 
     if (count > 0) mapValues = mapValues.take(count).toList();
 
-    mapValues.forEach((k1) {
-      result[mapReversed[k1]] = k1;
-    });
+    this.removeWhere((k, v) => !mapValues.contains(v));
+
+    for (var value in mapValues) {
+      var key = this.keys.firstWhere((k) => this[k] == value);
+      result[key] = this.remove(key);
+    } 
+
     return result;
   }
 }
