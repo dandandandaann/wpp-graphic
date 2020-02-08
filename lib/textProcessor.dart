@@ -1,6 +1,7 @@
 import 'dart:core';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
+import 'package:hello_world/classes/extensions/map.dart';
 
 class TextProcessor {
   String _chat;
@@ -12,8 +13,7 @@ class TextProcessor {
     ChatPattern(
         'android_BR-da', r'\d{2}/\d{2}/\d{4} \d{1,2}:\d{2} \w+?.*? - ', 'd/M/y h:m a - '), // '31/01/2099 1:01 da noite - '
     ChatPattern('android_US-24h', r'\d{1,2}/\d{1,2}/\d{2}, \d{2}:\d{2} - ', 'M/d/y, H:m - '), // '1/31/99, 01:01 - '
-    ChatPattern(
-        'android_US-AM/PM', r'\d{1,2}/\d{1,2}/\d{2}, \d{1,2}:\d{2} (AM|PM) - ', 'M/d/y, h:m a - '), // '1/31/99, 1:01 AM - '
+    ChatPattern('android_US-12h', r'\d{1,2}/\d{1,2}/\d{2}, \d{1,2}:\d{2} (AM|PM) - ', 'M/d/y, h:m a - '), // '1/31/99, 1:01 AM - '
     ChatPattern('ios_BR-24h', r'\[\d{2}/\d{2}/\d{2} \d{2}:\d{2}:\d{2}\] ', '[d/M/y H:m:s] '), // '[31/01/99 01:01:01] '
   ];
 
@@ -129,8 +129,8 @@ class TextProcessor {
       result['Palavras $user'] = '${users[user].wordCount} (${(users[user].wordCount * 100 / totalWordCount).round()}%)';
     }
 
-    // TODO: sort ascending (pre populate msgPerWeekDay?)
-    result['Mensagens por hora'] = msgPerHour.entries.fold('', (join, item) => join + '${item.key}h: ${item.value}\n');
+    result['Mensagens por hora'] =
+        msgPerHour.sortAscending().entries.fold('', (join, item) => join + '${item.key}h: ${item.value}\n');
     result['Mensagens por dia'] = msgPerWeekDay.entries.fold('', (join, item) => join + '${item.key}: ${item.value}\n');
     // TODO: sort months (swap year and month while sorting?)
     result['Mensagens por mês'] = msgPerMonth.entries.fold('', (join, item) => join + '${item.key}: ${item.value}\n');
@@ -183,30 +183,6 @@ class TextProcessor {
     if (wordsNotCounted.contains(word)) return false;
 
     return true;
-  }
-}
-
-// TODO: Extension methods weren't supported until version 2.6.0, but this code is required to be able to run on earlier versions.
-extension MyMap<K, V> on Map<K, V> {
-  Map<K, V> topValues([int count = 0]) {
-    List<V> mapValues = this.values.toList(growable: false);
-    if (V == int) {
-      mapValues.sort((k1, k2) => (k2 as int) - (k1 as int));
-    } else if (V == String) {
-      mapValues.sort((k1, k2) => (k2 as String).length - (k1 as String).length);
-    }
-    var result = new Map<K, V>();
-
-    if (count > 0) mapValues = mapValues.take(count).toList();
-
-    this.removeWhere((k, v) => !mapValues.contains(v));
-
-    for (var value in mapValues) {
-      var key = this.keys.firstWhere((k) => this[k] == value);
-      result[key] = this.remove(key);
-    }
-
-    return result;
   }
 }
 
