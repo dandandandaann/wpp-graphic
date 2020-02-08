@@ -8,10 +8,13 @@ class TextProcessor {
 
   /// Date format reference: https://pub.dev/documentation/intl/latest/intl/DateFormat-class.html
   final _patternList = [
-    ChatPattern('android_US', r'\d{1,2}/\d{1,2}/\d{2}, \d{2}:\d{2} - ', 'M/d/y, H:m - '), // '1/31/99, 01:01 - '
-    ChatPattern('android_BR', r'\d{2}/\d{2}/\d{2} \d{2}:\d{2} - ', 'd/M/y H:m - '), // '31/01/99 01:01 - '
-    ChatPattern('ios_BR', r'\[\d{2}/\d{2}/\d{2} \d{2}:\d{2}:\d{2}\] ', '[d/M/y H:m:s] '), // '[31/01/99 01:01:01] '
-    ChatPattern('android_US-2', r'\d{1,2}/\d{1,2}/\d{2}, \d{1,2}:\d{2} (AM|PM) - ', 'M/d/y, h:m a - '), // '1/31/99, 1:01 AM - '
+    ChatPattern('android_BR-24h', r'\d{2}/\d{2}/\d{2} \d{2}:\d{2} - ', 'd/M/y H:m - '), // '31/01/99 01:01 - '
+    ChatPattern(
+        'android_BR-da', r'\d{2}/\d{2}/\d{4} \d{1,2}:\d{2} \w+?.*? - ', 'd/M/y h:m a - '), // '31/01/2099 1:01 da noite - '
+    ChatPattern('android_US-24h', r'\d{1,2}/\d{1,2}/\d{2}, \d{2}:\d{2} - ', 'M/d/y, H:m - '), // '1/31/99, 01:01 - '
+    ChatPattern(
+        'android_US-AM/PM', r'\d{1,2}/\d{1,2}/\d{2}, \d{1,2}:\d{2} (AM|PM) - ', 'M/d/y, h:m a - '), // '1/31/99, 1:01 AM - '
+    ChatPattern('ios_BR-24h', r'\[\d{2}/\d{2}/\d{2} \d{2}:\d{2}:\d{2}\] ', '[d/M/y H:m:s] '), // '[31/01/99 01:01:01] '
   ];
 
   TextProcessor(String chatText) {
@@ -22,15 +25,19 @@ class TextProcessor {
     var result = Map<String, String>();
 
     // define chat pattern
-    if ((_chat ?? '').length < 50) throw new Exception('Pouco chat para analisar');
+    if ((_chat ?? '').length < 50) throw new Exception('Erro ao tentar analisar o chat');
     var chatStart = _chat.substring(0, 50);
     _pattern = _patternList.singleWhere((pattern) => new RegExp(pattern.regex).hasMatch(chatStart),
-        orElse: () => throw new UnimplementedError('pattern "${chatStart.substring(0, 25)}" não reconhecido'));
+        orElse: () => throw new UnimplementedError('pattern "${chatStart.substring(0, 50)}" não reconhecido'));
 
     // remove whatsapp tags <...>
-    _chat = _chat.replaceAll('<Media omitted>', '');
-    _chat = _chat.replaceAll('<Arquivo de mídia oculto>', '');
+    _chat = _chat.replaceAll(RegExp(r'(\<Media omitted\>|\<Arquivo de mídia oculto\>)'), '');
 
+    // fix this shitty date format
+    if (_pattern.id == 'android_BR-da') {
+      _chat = _chat.replaceAll(RegExp(r'(meia-noite|da madrugada|da manhã)'), 'AM');
+      _chat = _chat.replaceAll(RegExp(r'(meio-dia|da tarde|da noite)'), 'PM');
+    }
     // separate timestamp and text
     var dateAndTime = RegExp(_pattern.regex).allMatches(_chat).map((match) => match.group(0)).toList();
     var userAndText = _chat.split(RegExp(_pattern.regex, dotAll: true));
@@ -128,7 +135,8 @@ class TextProcessor {
     // TODO: sort months (swap year and month while sorting?)
     result['Mensagens por mês'] = msgPerMonth.entries.fold('', (join, item) => join + '${item.key}: ${item.value}\n');
 
-    result['Palavras mais faladas'] = wordCount.topValues(15).entries.fold('', (join, item) => join + '${item.key}: ${item.value}\n');
+    result['Palavras mais faladas'] =
+        wordCount.topValues(15).entries.fold('', (join, item) => join + '${item.key}: ${item.value}\n');
 
     return result;
   }
@@ -196,7 +204,7 @@ extension MyMap<K, V> on Map<K, V> {
     for (var value in mapValues) {
       var key = this.keys.firstWhere((k) => this[k] == value);
       result[key] = this.remove(key);
-    } 
+    }
 
     return result;
   }
