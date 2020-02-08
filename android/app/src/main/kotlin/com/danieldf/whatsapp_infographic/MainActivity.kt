@@ -1,4 +1,4 @@
-package com.danieldf.whatsapp_infographic
+package com.danielfd.whatsapp_infographic
 
 import android.content.Intent
 import android.os.Bundle

@@ -5,24 +5,24 @@ import 'package:flutter/services.dart';
 import 'package:whatsapp_infographic/rollbar/flutter_rollbar.dart';
 import 'package:whatsapp_infographic/rollbar/rollbar_types.dart';
 // import 'package:flutter_rollbar/flutter_rollbar.dart';
-import 'package:whatsapp_infographic/textProcessor.dart';
+import 'package:whatsapp_infographic/classes/textProcessor.dart';
 // import 'deviceInfo.dart';
 
 void main() => runZoned<Future<void>>(() async {
-      runApp(new HelloWorldApp());
+      runApp(new WhatsappInfographicApp());
     }, onError: (error, stackTrace) async {
       Rollbar().publishReport(message: '$error.\n$stackTrace');
       // TODO: show dialog when errors are caught
       // _reportError(error, stackTrace);
     });
 
-class HelloWorldApp extends StatefulWidget {
+class WhatsappInfographicApp extends StatefulWidget {
   State<StatefulWidget> createState() {
-    return new HelloWorldState();
+    return new WhatsappInfographicState();
   }
 }
 
-class HelloWorldState extends State<HelloWorldApp> {
+class WhatsappInfographicState extends State<WhatsappInfographicApp> {
   Map<String, String> chatStatistics;
 
   Widget build(BuildContext context) {
@@ -30,20 +30,20 @@ class HelloWorldState extends State<HelloWorldApp> {
       home: new Scaffold(
         appBar: new AppBar(
           title: new Text('Whatsapp Infographic'), centerTitle: true,
-          // TODO: comment before releasing
-          actions: <Widget>[
-            new IconButton(
-              icon: new Icon(Icons.refresh),
-              onPressed: () async {
-                final String path = 'assets/chat.txt';
-                var asd = await WIP.loadAsset(path, context);
-                var _textProcessor = new TextProcessor(asd);
-                chatStatistics = _textProcessor.generateStatistics();
-                setState(() {});
-              },
-            )
-          ],
-          // comment before releasing
+          // TODO: comment before releasing ----
+          // actions: <Widget>[
+          //   new IconButton(
+          //     icon: new Icon(Icons.refresh),
+          //     onPressed: () async {
+          //       final String path = 'assets/chat.txt';
+          //       var asd = await WIP.loadAsset(path, context);
+          //       var _textProcessor = new TextProcessor(asd);
+          //       chatStatistics = _textProcessor.generateStatistics();
+          //       setState(() {});
+          //     },
+          //   )
+          // ],
+          // comment before releasing ----
         ),
         body: new Center(
             child: chatStatistics == null
@@ -81,7 +81,7 @@ class HelloWorldState extends State<HelloWorldApp> {
 
     Rollbar()
       ..accessToken = '831f70defad74c3092a50b2e0012102e'
-      ..environment = 'development'
+      ..environment = 'production'
       ..person = new RollbarPerson(id: 'anon');
     super.initState();
     _init();

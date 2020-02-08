@@ -55,6 +55,7 @@
 # Gradle files
 **/android/.gradle/
 **/android/build/
+**/android/**/release/
 
 # iOS/XCode related
 **/ios/**/*.mode1v3
@@ -92,4 +93,4 @@
 
 # Ignore generated icons
 **/ios/**/AppIcon.appiconset/*.png
-**android/**/res/*.png 
+**/android/**/res/*.png 
