@@ -2,11 +2,10 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:hello_world/rollbar/flutter_rollbar.dart';
-import 'package:hello_world/rollbar/rollbar_types.dart';
+import 'package:whatsapp_infographic/rollbar/flutter_rollbar.dart';
+import 'package:whatsapp_infographic/rollbar/rollbar_types.dart';
 // import 'package:flutter_rollbar/flutter_rollbar.dart';
-import 'package:hello_world/textProcessor.dart';
-
+import 'package:whatsapp_infographic/textProcessor.dart';
 // import 'deviceInfo.dart';
 
 void main() => runZoned<Future<void>>(() async {

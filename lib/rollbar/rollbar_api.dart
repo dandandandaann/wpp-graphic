@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 // import 'package:flutter_rollbar/rollbar_types.dart';
-import 'package:hello_world/rollbar/rollbar_types.dart';
+import 'package:whatsapp_infographic/rollbar/rollbar_types.dart';
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
 

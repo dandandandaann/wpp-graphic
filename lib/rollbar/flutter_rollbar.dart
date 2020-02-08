@@ -6,8 +6,8 @@ import 'dart:async';
 // import 'package:device_info/device_info.dart';
 // import 'package:flutter_rollbar/rollbar_api.dart';
 // import 'package:flutter_rollbar/rollbar_types.dart';
-import 'package:hello_world/rollbar/rollbar_api.dart';
-import 'package:hello_world/rollbar/rollbar_types.dart';
+import 'package:whatsapp_infographic/rollbar/rollbar_api.dart';
+import 'package:whatsapp_infographic/rollbar/rollbar_types.dart';
 import 'package:meta/meta.dart';
 // import 'package:package_info/package_info.dart';
 

@@ -1,7 +1,7 @@
 import 'dart:core';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
-import 'package:hello_world/classes/extensions/map.dart';
+import 'package:whatsapp_infographic/classes/extensions/map.dart';
 
 class TextProcessor {
   String _chat;
